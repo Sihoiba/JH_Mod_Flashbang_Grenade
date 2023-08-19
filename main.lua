@@ -66,14 +66,15 @@ register_blueprint "buff_blinded_enemy"
 					target.target.entity = nil				
 					target.data.ai.idle_vision = 1
 					target.data.ai.vision = 1
-					if target.listen then						
+					if target.listen then
 						target.listen.active = false
 					end
-					
 				else
 					target.data.ai.idle_vision = level.level_info.light_range
 					target.data.ai.vision = level.level_info.light_range
-					target.listen.active = true
+					if target.listen then
+						target.listen.active = false
+					end
 				end					
 			end
 		]],
