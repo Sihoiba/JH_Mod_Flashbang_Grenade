@@ -6,23 +6,13 @@ register_blueprint "buff_blinded_player"
 		desc    = "Reduces vision range",				
 	},
 	callbacks = {
-		on_post_command = [[
-			function ( self, actor, cmt, tgt, time )
-				world:callback( self )
-			end
-		]],
-		on_callback = [[
-			function ( self )
-				local target = ecs:parent( self )
+		on_attach = [[
+			function ( self, target )
 				local level = world:get_level()
-				if self.lifetime.time_left > 100 then				
-					target.attributes.vision = level.level_info.light_range - 3
-				else
-					target.attributes.vision = level.level_info.light_range
-				end	
-				
+				self.attributes.vision = -( target:attribute( "vision" ) - ( level.level_info.light_range -3 ) ) 
+				self.attributes.min_vision = - ( target:attribute("vision" ) - 2 )
 			end
-		]],
+		]],	
 		on_die = [[
 			function ( self )	
 				world:mark_destroy( self )
@@ -48,35 +38,42 @@ register_blueprint "buff_blinded_enemy"
 	text = {
 		name    = "Blinded",
 		desc    = "Reduces vision range",				
-	},
+	},	
 	callbacks = {
-		on_post_command = [[
-			function ( self, actor, cmt, tgt, time )
-				world:callback( self )
+		on_attach = [[
+			function ( self, parent )
+				parent.data.blinded_buff_before = {}
+				parent.data.blinded_buff_before.original_aware = parent.data.ai.aware
+				parent.data.blinded_buff_before.original_vision = parent.data.ai.vision
+				parent.data.blinded_buff_before.original_idle_vision = parent.data.ai.idle_vision
+				parent.data.blinded_buff_before.original_smell = parent.data.ai.smell
+				parent.data.blinded_buff_before.original_ai = parent.data.ai.group
+
+				parent.data.ai.aware = false
+				parent.data.ai.state = "wait"
+				parent.data.ai.smell = nil
+				parent.target.entity = nil				
+				parent.data.ai.idle_vision = 1
+				parent.data.ai.vision = 1
+				
+				if parent.listen then
+					parent.data.blinded_buff_before.listen_active = parent.listen.active 
+					parent.listen.active = false
+				end
 			end
 		]],
-		on_callback = [[
-			function ( self )
-				local target = ecs:parent( self )
-				local level = world:get_level()
-				if self.lifetime.time_left > 100 then							
-					target.data.ai.aware = false
-					target.data.ai.state = "idle"
-					target.data.ai.smell = nil
-					target.target.entity = nil				
-					target.data.ai.idle_vision = 1
-					target.data.ai.vision = 1
-					if target.listen then
-						target.listen.active = false
-					end
-				else
-					target.data.ai.idle_vision = level.level_info.light_range
-					target.data.ai.vision = level.level_info.light_range
-					if target.listen then
-						target.listen.active = false
-					end
-				end					
-			end
+		on_detach  = [[
+			function ( self, parent )				
+				parent.data.ai.aware = parent.data.blinded_buff_before.original_aware
+				parent.data.ai.smell = parent.data.blinded_buff_before.original_smell
+				parent.data.ai.idle_vision = parent.data.blinded_buff_before.original_idle_vision
+				parent.data.ai.vision = parent.data.blinded_buff_before.original_vision
+				parent.data.ai.state = "idle"
+				
+				if parent.listen then
+					parent.data.listen_active = parent.data.blinded_buff_before.listen_active
+				end
+			end				
 		]],
 		on_die = [[
 			function ( self )	
@@ -128,16 +125,12 @@ register_blueprint "apply_flashbanged"
 	callbacks = {
 		on_damage = [[
 			function ( unused, weapon, who, amount, source )
-				if who and who.data and who.data.can_bleed then
+				if who and who.data then
 					if who.data.is_player then
-						world:add_buff( who, "buff_blinded_player", 500, true )
-					else
-						who.data.ai.aware = false
-						who.data.ai.state = "idle"
-						who.data.ai.smell = nil
-						who.target.entity = nil
-						world:add_buff( who, "buff_blinded_enemy", 500, true )
-						world:add_buff( who, "buff_stunned", 500, true )
+						world:add_buff( who, "buff_blinded_player", 300, true )
+					elseif who.data.can_bleed then
+						world:add_buff( who, "buff_blinded_enemy", 300, true )
+						world:add_buff( who, "buff_stunned", 300, true )
 					end
 				end
 			end
@@ -156,7 +149,7 @@ register_blueprint "flashbang_grenade"
 		dmed     = 10,
 	},
 	text = {
-		name = "Flashbang grenade",
+		name = "flashbang grenade",
 		desc = "Security issue Flashbang grenade. Stuns and blinds living things.",
 	},
 	ascii     = {
