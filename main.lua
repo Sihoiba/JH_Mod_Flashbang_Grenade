@@ -129,8 +129,8 @@ register_blueprint "apply_flashbanged"
 					if who.data.is_player then
 						world:add_buff( who, "buff_blinded_player", 300, true )
 					elseif who.data.can_bleed then
-						world:add_buff( who, "buff_blinded_enemy", 300, true )
-						world:add_buff( who, "buff_stunned", 300, true )
+						world:add_buff( who, "buff_blinded_enemy", 400, true )
+						world:add_buff( who, "buff_stunned", 400, true )
 					end
 				end
 			end
