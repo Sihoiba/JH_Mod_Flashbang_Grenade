@@ -58,24 +58,6 @@ register_blueprint "buff_stunned"
     },
 }
 
-register_blueprint "apply_flashbanged"
-{
-    callbacks = {
-        on_damage = [[
-            function ( unused, weapon, who, amount, source )
-                if who and who.data then
-                    if who.data.is_player then
-                        world:add_buff( who, "buff_blinded_player", 300, true )
-                    elseif who.data.can_bleed then
-                        world:add_buff( who, "buff_blinded_enemy", 400, true )
-                        world:add_buff( who, "buff_stunned", 400, true )
-                    end
-                end
-            end
-        ]],
-    }
-}
-
 register_blueprint "flashbang_grenade"
 {
     flags = { EF_ITEM, EF_CONSUMABLE },
