@@ -32,68 +32,6 @@ register_blueprint "buff_blinded_player"
 	},
 }
 
-register_blueprint "buff_blinded_enemy"
-{
-	flags = { EF_NOPICKUP }, 
-	text = {
-		name    = "Blinded",
-		desc    = "Reduces vision range",				
-	},	
-	callbacks = {
-		on_attach = [[
-			function ( self, parent )
-				parent.data.blinded_buff_before = {}
-				parent.data.blinded_buff_before.original_aware = parent.data.ai.aware
-				parent.data.blinded_buff_before.original_vision = parent.data.ai.vision
-				parent.data.blinded_buff_before.original_idle_vision = parent.data.ai.idle_vision
-				parent.data.blinded_buff_before.original_smell = parent.data.ai.smell
-				parent.data.blinded_buff_before.original_ai = parent.data.ai.group
-
-				parent.data.ai.aware = false
-				parent.data.ai.state = "wait"
-				parent.data.ai.smell = nil
-				parent.target.entity = nil				
-				parent.data.ai.idle_vision = 1
-				parent.data.ai.vision = 1
-				
-				if parent.listen then
-					parent.data.blinded_buff_before.listen_active = parent.listen.active 
-					parent.listen.active = false
-				end
-			end
-		]],
-		on_detach  = [[
-			function ( self, parent )				
-				parent.data.ai.aware = parent.data.blinded_buff_before.original_aware
-				parent.data.ai.smell = parent.data.blinded_buff_before.original_smell
-				parent.data.ai.idle_vision = parent.data.blinded_buff_before.original_idle_vision
-				parent.data.ai.vision = parent.data.blinded_buff_before.original_vision
-				parent.data.ai.state = "idle"
-				
-				if parent.listen then
-					parent.data.listen_active = parent.data.blinded_buff_before.listen_active
-				end
-			end				
-		]],
-		on_die = [[
-			function ( self )	
-				world:mark_destroy( self )
-			end
-		]],
-		on_enter_level = [[
-			function ( self )			
-				world:mark_destroy( self )
-			end
-		]],
-	},
-	ui_buff = {
-		color = WHITE,		
-		style = 1,
-	},
-	attributes = {		
-	},
-}
-
 register_blueprint "buff_stunned"
 {
 	flags = { EF_NOPICKUP }, 
@@ -129,7 +67,7 @@ register_blueprint "apply_flashbanged"
 					if who.data.is_player then
 						world:add_buff( who, "buff_blinded_player", 300, true )
 					elseif who.data.can_bleed then
-						world:add_buff( who, "buff_blinded_enemy", 400, true )
+						world:add_buff( who, "blinded", 400, true )
 						world:add_buff( who, "buff_stunned", 400, true )
 					end
 				end
