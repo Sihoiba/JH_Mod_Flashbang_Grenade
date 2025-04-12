@@ -1,3 +1,5 @@
+nova.require "data/lua/jh/data/common"
+
 register_blueprint "buff_blinded_player"
 {
     flags = { EF_NOPICKUP },
