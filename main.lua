@@ -34,7 +34,7 @@ register_blueprint "buff_blinded_player"
     },
 }
 
-register_blueprint "buff_stunned"
+register_blueprint "buff_disoriented"
 {
     flags = { EF_NOPICKUP },
     ui_buff = {
@@ -44,7 +44,7 @@ register_blueprint "buff_stunned"
         style     = 0,
     },
     text = {
-        name    = "Stunned",
+        name    = "Disoriented",
         desc    = "slows down movement by the given amount",
     },
     callbacks = {
@@ -71,7 +71,7 @@ register_blueprint "flashbang_grenade"
         dmed     = 10,
     },
     text = {
-        name = "flashbang grenade",
+        name = "flashbang",
         desc = "Security issue Flashbang grenade. Stuns and blinds living things.",
     },
     ascii     = {
@@ -102,9 +102,9 @@ register_blueprint "flashbang_grenade"
                     local who = level:get_being( where )
                     if who and who.data and who.data.is_player then
                         world:add_buff( who, "buff_blinded_player", 300, true )
-                    else who and who.data and who.data.ai and (not who.data.is_player) and who.data.can_bleed then
+                    elseif who and who.data and who.data.ai and (not who.data.is_player) and who.data.can_bleed then
                         world:add_buff( who, "blinded", 400, true )
-                        world:add_buff( who, "buff_stunned", 400, true )
+                        world:add_buff( who, "buff_disoriented", 400, true )
                     end
             end
         ]],
