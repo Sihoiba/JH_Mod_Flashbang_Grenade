@@ -47,17 +47,49 @@ register_blueprint "buff_disoriented"
         name    = "Disoriented",
         desc    = "slows down movement by the given amount",
     },
-    callbacks = {
+	callbacks = {
         on_die = [[
             function ( self )
                 world:mark_destroy( self )
             end
-        ]],
+        ]]
     },
     attributes = {
         display_value = -25,
         move_time     = 1.34,
     },
+}
+
+register_blueprint "flashbanged"
+{
+    flags = { EF_NOPICKUP },
+    callbacks = {
+        on_attach = [[
+            function ( self, parent )
+                parent.data.flashbanged_before = {}
+                parent.data.flashbanged_before.original_aware = parent.data.ai.aware
+
+                parent.data.ai.aware = false
+                parent.data.ai.state = "wait"
+                parent.target.entity = nil
+
+                if parent.listen then
+                    parent.data.flashbanged_before.listen_active = parent.listen.active
+                    parent.listen.active = false
+                end
+            end
+        ]],
+        on_detach  = [[
+            function ( self, parent )
+                parent.data.ai.aware = parent.data.flashbanged_before.original_aware
+                parent.data.ai.state = "idle"
+
+                if parent.listen then
+                    parent.data.listen_active = parent.data.flashbanged_before.listen_active
+                end
+            end
+        ]]
+    }
 }
 
 register_blueprint "flashbang_grenade"
@@ -105,6 +137,7 @@ register_blueprint "flashbang_grenade"
                     elseif who and who.data and who.data.ai and (not who.data.is_player) and who.data.can_bleed then
                         world:add_buff( who, "blinded", 400, true )
                         world:add_buff( who, "buff_disoriented", 400, true )
+                        world:add_buff( who, "flashbanged", 100, true )
                     end
             end
         ]],
